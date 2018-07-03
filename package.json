@@ -1,0 +1,31 @@
+{
+  "name": "survival-sim",
+  "version": "0.0.1",
+  "description": "Survival sim playground",
+  "main": "main.js",
+  "dependencies": {
+    "immutable": "^3.8.2",
+    "random-js": "~1.0.8"
+  },
+  "devDependencies": {
+    "babel-eslint": "^8.2.2",
+    "babel-plugin-transform-class-properties": "~6.10.2",
+    "babel-preset-es2015": "~6.9.0",
+    "babelify": "~7.3.0",
+    "browserify": "~13.0.1",
+    "eslint": "^4.18.1",
+    "gulp": "~3.9.1",
+    "gulp-browserify": "~0.5.1",
+    "gulp-rename": "~1.2.2",
+    "gulp-sourcemaps": "~1.6.0",
+    "gulp-uglify": "~3.0.0",
+    "gulp-util": "~3.0.7",
+    "vinyl-buffer": "~1.0.0",
+    "vinyl-source-stream": "~1.1.0"
+  },
+  "scripts": {
+    "eslint": "eslint"
+  },
+  "author": "Brandon Soucie & Matt Dixon",
+  "license": "BSD-2-Clause"
+}

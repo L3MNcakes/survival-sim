@@ -4,23 +4,17 @@
         "es6": true
     },
     "extends": [
-        "eslint:recommended",
-        "plugin:flowtype/recommended",
-        "plugin:react/recommended"
+        "eslint:recommended"
     ],
     "parser": "babel-eslint",
     "parserOptions": {
         "ecmaFeatures": {
-            "experimentalObjectRestSpread": true,
-            "jsx": true
+            "experimentalObjectRestSpread": true
         },
         "sourceType": "module",
         "allowImportExportEverywhere": false
     },
-    "plugins": [
-        "react",
-        "flowtype"
-    ],
+    "plugins": [],
     "rules": {
         "strict": 0,
         "indent": [
@@ -42,7 +36,6 @@
             "error",
             "always"
         ],
-        "react/jsx-uses-vars": [2],
         "no-console": [
             "error",
             {

@@ -26,8 +26,6 @@ export class App {
         circle.x = agent.position.x;
         circle.y = agent.position.y;
         this.pixiApp.stage.addChild(circle);
-        console.log(agent);
-        console.log(circle);
     }
 
     generateAgents() {

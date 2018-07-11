@@ -69,11 +69,6 @@ export class App {
             this.agents[i].tick();
         }
 
-        /**
-         *for(let i = 0; i < CONFIG.numberOfItems; i++) {
-         *    this.items[i].tick();
-         *}
-         */
         this.render();
     }
 }

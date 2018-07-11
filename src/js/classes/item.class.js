@@ -21,12 +21,4 @@ export class Item {
         this.pixiGraphic.x = this.position.x;
         this.pixiGraphic.y = this.position.y;
     }
-    /**
-     *getDestination() {
-     *    let randomX = Random.integer(0, CONFIG.width)(Random.engines.nativeMath),
-     *        randomY = Random.integer(0, CONFIG.height)(Random.engines.nativeMath),
-     *
-     *    return destination;
-     *}
-     */
 }

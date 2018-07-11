@@ -40,7 +40,7 @@ export class Agent {
             moveVec = deltaVec.clone().multiply(new Victor(CONFIG.maxSpeed, CONFIG.maxSpeed)),
             newPosition = this.position.clone().add(moveVec);
 
-        if (this.position.distance(this.destination) < CONFIG.radius / 2) {
+        if (this.position.distance(this.destination) < CONFIG.agentRadius / 2) {
             newPosition = this.destination.clone();
         }
         this.position = newPosition.clone();

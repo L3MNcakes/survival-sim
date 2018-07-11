@@ -11,5 +11,7 @@ export const CONFIG = {
     maxSpeed: 10,
     minSpeed: null,
     numberOfAgents: 10,
-    radius: 10,
+    numberOfItems: 5,
+    agentRadius: 10,
+    itemRadius: 3,
 }

@@ -9,6 +9,7 @@ let app = new App(),
 
 ui.renderApp();
 app.generateAgents();
+app.generateItems();
 app.render();
 
 setInterval( () => {

@@ -10,3 +10,7 @@ let app = new App(),
 ui.renderApp();
 app.generateAgents();
 app.render();
+
+setInterval( () => {
+    app.tick();
+}, 50);

@@ -8,8 +8,8 @@ export const CONFIG = {
     roundPixels: true,
     worldSize: null,
     maxUnits: null,
-    maxSpeed: null,
+    maxSpeed: 10,
     minSpeed: null,
-    numberOfAgents: 5,
+    numberOfAgents: 10,
     radius: 10,
 }

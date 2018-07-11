@@ -20,12 +20,8 @@ export class App {
     }
 
     renderAgent(agent) {
-        let circle = new PIXI.Graphics();
-        circle.beginFill(agent.color);
-        circle.drawCircle(0, 0, agent.radius);
-        circle.x = agent.position.x;
-        circle.y = agent.position.y;
-        this.pixiApp.stage.addChild(circle);
+        agent.update();
+        this.pixiApp.stage.addChild(agent.pixiGraphic);
     }
 
     generateAgents() {
@@ -44,5 +40,13 @@ export class App {
         for(let i = 0; i < this.agents.length; i++) {
             this.renderAgent(this.agents[i]);
         }
+    }
+
+    tick() {
+        for(let i = 0; i < CONFIG.numberOfAgents; i++) {
+            this.agents[i].tick();
+        }
+
+        this.render();
     }
 }

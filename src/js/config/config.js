@@ -3,36 +3,43 @@
  */
 export const CONFIG = {
     world: {
-        width: 500,
-        height: 500,
-        backgroundColor: 0x800000,
+        width: window.innerWidth / 1.1,
+        height: window.innerHeight / 1.1,
+        backgroundColor: 0x000000,
         roundPixels: true,
         antialius: true,
-        transparent: false,
+        transparent: true,
         resolution: 1,
-        /**
-        renderer: {
-            view: {
-                style: {
-                    position: 'absolute',
-                    display: 'block'
-                },
-            },
-            backgroundColor: 0x000000,
-            autoResize: true,
-            resize: (window.innerWidth, window.innerHeight)
-        },
-        **/
+        forceCanvas: true,
     },
-    worldSize: null,
+    agent: {
+        initNum: null,
+        radius: 10,
+        color: 0xffffff,
+        waitTime: 2000,
+        human: {
+            initNum: 8,
+            radius: 8,
+            color: 0xf2df8c,
+            speed: 8,
+            waitTime: 2000,
+        },
+        zombie: {
+            initNum: 3,
+            radius: 8,
+            color: 0x689155,
+            speed: 4,
+            waitTime: 3000,
+        },
+    },
+    item: {
+        initNum: 4,
+        radius: 4,
+        color: 0x8cc9ff,
+        waitTime: 1000,
+    },
     maxUnits: null,
-    maxSpeed: 10,
+    maxSpeed: 8,
     minSpeed: null,
-    numberOfAgents: 100,
-    numberOfItems: 5,
-    agentRadius: 10,
-    itemRadius: 5,
-    agentColor: 0xffffff,
-    itemColor: 0x00ff00,
     updateIntervalLength: 50 // in miliseconds
 }

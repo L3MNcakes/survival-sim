@@ -42,7 +42,7 @@ export class Agent {
             case "wait":
                 return new AgentWaitAction({
                     agent: this,
-                    time: 3000
+                    time: CONFIG.agent.waitTime,
                 });
         }
     }

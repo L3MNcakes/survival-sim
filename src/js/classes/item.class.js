@@ -15,7 +15,7 @@ export class Item {
     }
 
     update() {
-        this.pixiGraphic = new PIXI.Graphics();
+        this.pixiGraphic.clear();
         this.pixiGraphic.beginFill(this.color);
         this.pixiGraphic.drawCircle(0, 0, this.radius);
         this.pixiGraphic.x = this.position.x;

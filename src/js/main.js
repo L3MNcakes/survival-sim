@@ -2,16 +2,7 @@
  * main.js
  */
 import { App } from './classes/app.class';
-import { UI } from './classes/ui.class';
 
-let app = new App(),
-    ui = new UI(app);
-
-ui.renderApp();
-app.generateAgents();
-app.generateItems();
+let app = new App();
 app.render();
-
-setInterval( () => {
-    app.tick();
-}, 50);
+app.world.start();

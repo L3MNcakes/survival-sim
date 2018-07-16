@@ -17,15 +17,16 @@ export class Agent {
     }
 
     update() {
-        this.pixiGraphic.destroy();
-        this.pixiGraphic = new PIXI.Graphics();
+        this.move();
+
+        this.pixiGraphic.clear();
         this.pixiGraphic.beginFill(this.color);
         this.pixiGraphic.drawCircle(0, 0, this.radius);
         this.pixiGraphic.x = this.position.x;
         this.pixiGraphic.y = this.position.y;
     }
 
-    tick() {
+    move() {
         if (!this.destination) {
             this.originalPosition = this.position.clone();
             this.destination = this.getDestination();
@@ -43,12 +44,14 @@ export class Agent {
         if (this.position.distance(this.destination) < CONFIG.agentRadius / 2) {
             newPosition = this.destination.clone();
         }
+
         this.position = newPosition.clone();
     }
 
     getDestination() {
-        let randomX = Random.integer(0, CONFIG.width)(Random.engines.nativeMath),
-            randomY = Random.integer(0, CONFIG.height)(Random.engines.nativeMath),
+
+        let randomX = Random.integer(0, CONFIG.world.width)(Random.engines.nativeMath),
+            randomY = Random.integer(0, CONFIG.world.height)(Random.engines.nativeMath),
             destination = new Victor(randomX, randomY);
 
         return destination;

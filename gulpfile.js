@@ -8,7 +8,7 @@ var gulp = require('gulp'),
     sourcemaps = require('gulp-sourcemaps'),
     buffer = require('vinyl-buffer');
 
-gulp.task('default', ['scripts', 'html'], function() {
+gulp.task('default', ['scripts', 'html', 'images'], function() {
     // Default task
 });
 
@@ -43,4 +43,12 @@ var handleScriptsError = function(err) {
 gulp.task('html', function() {
     gulp.src('./src/**/*.html')
         .pipe(gulp.dest('dist'));
+});
+
+/**
+ * Images task
+ */
+gulp.task('images', function() {
+    gulp.src('./src/images/**/*')
+        .pipe(gulp.dest('dist/images'));
 });

@@ -1,13 +1,20 @@
 /**
  * agent.class.js
  */
+let Victor = require('victor');
+
 import * as PIXI from 'pixi.js';
 import * as Random from 'random-js';
 import { CONFIG } from '../config/config';
-let Victor = require('victor');
+import {
+    AgentMoveAction,
+    AgentColorChangeAction,
+    AgentWaitAction
+} from './actions/agent.actions';
 
 export class Agent {
     constructor(position, color, radius) {
+        this.hasAction = false;
         this.position = position;
         this.originalPosition = null;
         this.destination = null;
@@ -16,9 +23,35 @@ export class Agent {
         this.pixiGraphic = new PIXI.Graphics();
     }
 
-    update() {
-        this.move();
+    getAction() {
+        let randomAction = Random.picker(["move", "color", "wait"])(Random.engines.nativeMath);
 
+        switch(randomAction) {
+            case "color":
+                return new AgentColorChangeAction({
+                    agent: this,
+                    color: this.getRandomColor()
+                });
+            case "move":
+                return new AgentMoveAction({
+                    agent: this,
+                    origPosition: this.position.clone(),
+                    destination: this.getDestination(),
+                    speed: CONFIG.maxSpeed,
+                });
+            case "wait":
+                return new AgentWaitAction({
+                    agent: this,
+                    time: 3000
+                });
+        }
+    }
+
+    getRandomColor() {
+        return parseInt(Random.hex()(Random.engines.nativeMath, 6), 16);
+    }
+
+    update() {
         this.pixiGraphic.clear();
         this.pixiGraphic.beginFill(this.color);
         this.pixiGraphic.drawCircle(0, 0, this.radius);
@@ -26,30 +59,7 @@ export class Agent {
         this.pixiGraphic.y = this.position.y;
     }
 
-    move() {
-        if (!this.destination) {
-            this.originalPosition = this.position.clone();
-            this.destination = this.getDestination();
-        }
-
-        if (this.position.x === this.destination.x && this.position.y === this.destination.y) {
-            this.destination = null;
-            return;
-        }
-
-        let deltaVec = this.destination.clone().subtract(this.originalPosition).normalize(),
-            moveVec = deltaVec.clone().multiply(new Victor(CONFIG.maxSpeed, CONFIG.maxSpeed)),
-            newPosition = this.position.clone().add(moveVec);
-
-        if (this.position.distance(this.destination) < CONFIG.agentRadius / 2) {
-            newPosition = this.destination.clone();
-        }
-
-        this.position = newPosition.clone();
-    }
-
     getDestination() {
-
         let randomX = Random.integer(0, CONFIG.world.width)(Random.engines.nativeMath),
             randomY = Random.integer(0, CONFIG.world.height)(Random.engines.nativeMath),
             destination = new Victor(randomX, randomY);

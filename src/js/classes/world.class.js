@@ -4,9 +4,11 @@
 import { CONFIG } from '../config/config';
 import { generateRandomAgents } from '../factories/agent.factory';
 import { generateRandomItems } from '../factories/item.factory';
+import { ActionQueue } from './actions/action_queue.class';
 
 export class World {
     constructor() {
+        this.actionQueue = new ActionQueue();
         this.pixiApp = this.createNewPixiApp();
 
         this.agents = generateRandomAgents(
@@ -55,6 +57,12 @@ export class World {
 
     update() {
         this.agents.map( (agent) => {
+            if (!agent.hasAction) {
+                let action = agent.getAction();
+                //action.data.destination = this.items[0].position;
+                this.actionQueue.addAction(action);
+            }
+
             agent.update();
             this.pixiApp.stage.addChild(agent.pixiGraphic);
         });
@@ -63,6 +71,8 @@ export class World {
             item.update();
             this.pixiApp.stage.addChild(item.pixiGraphic);
         });
+
+        this.actionQueue.execute();
     }
 
     render() {

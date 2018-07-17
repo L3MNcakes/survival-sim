@@ -10,28 +10,14 @@ import {
     AgentColorChangeAction,
     AgentWaitAction
 } from './actions/agent.actions';
+import {
+    getRandomColor,
+    objectCollision,
+    getRandomDestination,
+} from '../factories/helpers';
 
 export class Zombie extends Agent {
     constructor(position, color, radius) {
         super(position, color, radius);
-    }
-
-    getAction() {
-        let randomAction = Random.picker(["move", "wait"])(Random.engines.nativeMath);
-
-        switch(randomAction) {
-            case "move":
-                return new AgentMoveAction({
-                    agent: this,
-                    origPosition: this.position.clone(),
-                    destination: this.getDestination(),
-                    speed: CONFIG.agent.zombie.speed,
-                });
-            case "wait":
-                return new AgentWaitAction({
-                    agent: this,
-                    time: CONFIG.agent.zombie.waitTime,
-                });
-        }
     }
 }

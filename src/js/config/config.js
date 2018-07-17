@@ -1,26 +1,33 @@
 /**
  * config.js
  */
+
+ import {
+     getRandomColor,
+ } from '../factories/helpers';
+
 export const CONFIG = {
     world: {
         width: window.innerWidth / 1.1,
         height: window.innerHeight / 1.1,
-        backgroundColor: 0x000000,
+        backgroundColor: 0xcecece,
         roundPixels: true,
         antialius: true,
-        transparent: true,
+        transparent: false,
         resolution: 1,
         forceCanvas: true,
     },
     agent: {
-        initNum: null,
+        initNum: 4,
         radius: 10,
         color: 0xffffff,
+        //lineColor: 0x000000,
         waitTime: 2000,
         human: {
             initNum: 8,
             radius: 8,
             color: 0xf2df8c,
+            //lineColor: 0x000000,
             speed: 8,
             waitTime: 2000,
         },
@@ -35,8 +42,8 @@ export const CONFIG = {
     item: {
         initNum: 4,
         radius: 4,
-        color: 0x8cc9ff,
-        waitTime: 1000,
+        color: 0x8cc9ff, //getRandomColor(),
+        checkInterval: 10,
     },
     maxUnits: null,
     maxSpeed: 8,

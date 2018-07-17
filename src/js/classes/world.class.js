@@ -10,6 +10,10 @@ import {
     generateRandomHumans,
     generateRandomZombies
 } from '../factories/agent.factory';
+import { getAgentAction } from '../factories/agent_action.factory';
+import { getHumanAction } from '../factories/human_action.factory';
+import { getZombieAction } from '../factories/zombie_action.factory';
+import { getItemAction } from '../factories/item_action.factory';
 
 export class World {
     constructor() {
@@ -35,7 +39,7 @@ export class World {
             CONFIG.world.width,
             CONFIG.world.height,
             CONFIG.agent.human.color,
-            CONFIG.agent.human.radius
+            CONFIG.agent.human.radius,
         );
 
 
@@ -44,7 +48,7 @@ export class World {
             CONFIG.world.width,
             CONFIG.world.height,
             CONFIG.agent.zombie.color,
-            CONFIG.agent.zombie.radius
+            CONFIG.agent.zombie.radius,
         )
 
         this.items = generateRandomItems(
@@ -52,7 +56,7 @@ export class World {
             CONFIG.world.width,
             CONFIG.world.height,
             CONFIG.item.color,
-            CONFIG.item.radius
+            CONFIG.item.radius,
         );
 
         this.updateInterval = null;
@@ -86,8 +90,7 @@ export class World {
     update() {
         this.agents.map( (agent) => {
             if (!agent.hasAction) {
-                let action = agent.getAction();
-                //action.data.destination = this.items[0].position;
+                let action = getAgentAction(agent, this.items);
                 this.actionQueue.addAction(action);
             }
 
@@ -97,8 +100,7 @@ export class World {
 
         this.humans.map( (human) => {
             if (!human.hasAction) {
-                let action = human.getAction();
-                //action.data.destination = this.items[0].position;
+                let action = getHumanAction(human, this.items);
                 this.actionQueue.addAction(action);
             }
 
@@ -108,8 +110,7 @@ export class World {
 
         this.zombies.map( (zombie) => {
             if (!zombie.hasAction) {
-                let action = zombie.getAction();
-                //action.data.destination = this.items[0].position;
+                let action = getZombieAction(zombie, this.humans);
                 this.actionQueue.addAction(action);
             }
 
@@ -119,7 +120,7 @@ export class World {
 
         this.items.map( (item) => {
             if(!item.hasAction) {
-                let action = item.getAction();
+                let action = getItemAction(item, this.humans);
 
                 this.actionQueue.addAction(action);
             }

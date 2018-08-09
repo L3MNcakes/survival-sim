@@ -23,3 +23,16 @@ export const generateRandomItems = (
 
         return items;
     };
+
+export const generateOneItem = (
+        maxX,
+        maxY,
+        color,
+        radius
+    ) => {
+        return new Item(
+            randomPosition(maxX, maxY),
+            color,
+            radius
+        );
+    };

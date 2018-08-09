@@ -31,6 +31,41 @@ export const randomPosition = (maxX, maxY) => {
  );
 };
 
+//export const getCleanStatus = ();
+
+export const getFurthestPosition = (checkingBody, avoidBodies) => {
+    let cheBodyLoca = checkingBody.position.clone(),
+        avoBodyLoca = avoidBodies.map((body) => {
+            return body.position.clone();
+        }),
+        avoBodyDist = avoidBodies.map((body) => {
+            return body.position.clone().distances(checkingBody.position);
+        }),
+        randomPositions = (cheBodyLoca, avoBodyLoca, avoBodyDist) => {
+
+        };
+};
+
+/**
+export const getNearestAgent = (item, agents) => {
+    let agentDistances = agents.map((agent) => {
+        return agent.position.clone().distance(item.position);
+    }),
+        closestDistance = Math.min(...agentDistances),
+        closestIndex = agentDistances.indexOf(closestDistance);
+
+        //return agents[closestIndex].position;
+
+        if(closestDistance !== 0) {
+            destination = item.position.clone();
+            return destination;
+        } else {
+            destination = getRandomDestination();
+            return destination;
+        }
+};
+*/
+
 export const getNearestItem = (agent, items) => {
     let itemDistances = items.map((item) => {
         return item.position.clone().distance(agent.position); //Victor man
@@ -41,6 +76,18 @@ export const getNearestItem = (agent, items) => {
         return items[closestIndex].position;
 };
 
+export const getActualNearestAgent = (from, agents) => {
+    let agentDistances = agents.map((agent) => {
+        return agent.position.clone().distance(from.position);
+    });
+
+    let closestDistance = Math.min(...agentDistances),
+        closestIndex = agentDistances.indexOf(closestDistance);
+
+    return agents[closestIndex].position.clone();
+}
+
+//Needs revision
 export const objectCollision = (agent, item) => {
   //Define the variables we'll need to calculate
   let hit, combinedHalfWidths, combinedHalfHeights, vx, vy;

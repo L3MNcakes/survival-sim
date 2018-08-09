@@ -3,7 +3,14 @@
  */
 let Victor = require('victor');
 
+import { CONFIG } from '../../config/config';
 import { Action } from './action.class';
+import {
+    getNearestAgent,
+    getRandomDestination,
+    objectCollision,
+    getActualNearestAgent,
+} from '../../factories/helpers';
 
 export class AgentMoveAction extends Action {
     /**
@@ -60,6 +67,44 @@ export class AgentMoveAction extends Action {
     }
 }
 
+export class AgentWaitAction extends Action {
+    /**
+     * Constructor
+     * @param {Object} data -
+     *      {
+     *          agent - The agent that is waiting
+     *          time - How long to wait (in ms)
+     *      }
+     */
+    constructor(data) {
+        super(data);
+    }
+
+    beforeExecute() {
+        this.data.agent.hasAction = true;
+        this._isDone = false;
+        this._hasTimeout = false;
+    }
+
+    execute() {
+        if (!this._hasTimeout) {
+            setTimeout(() => {
+                this._isDone = true;
+            }, this.data.time);
+
+            this._hasTimeout = true;
+        }
+    }
+
+    isDone() {
+        return this._isDone;
+    }
+
+    afterExecute() {
+        this.data.agent.hasAction = false;
+    }
+}
+
 export class AgentColorChangeAction extends Action {
     /**
      * Constructor
@@ -99,13 +144,57 @@ export class AgentColorChangeAction extends Action {
     }
 }
 
-export class AgentWaitAction extends Action {
+export class AgentChaseOthersAction extends Action {
     /**
      * Constructor
      * @param {Object} data -
      *      {
-     *          agent - The agent that is waiting
-     *          time - How long to wait (in ms)
+     *          agent - The agent that's performing the action
+                others - A list of other things to chase after
+     *          speed - The speed the agent chases at
+     *      }
+     */
+    constructor(data) {
+        super(data);
+
+        this._isDone = false;
+    }
+
+    beforeExecute() {
+        this.data.agent.hasAction = true;
+    }
+
+    execute() {
+        let target = getActualNearestAgent(this.data.agent, this.data.others),
+            deltaVec = target.clone().subtract(this.data.agent.position.clone()).normalize(),
+            speedVec = new Victor(this.data.speed, this.data.speed),
+            moveVec = deltaVec.clone().multiply(speedVec),
+            newPos = this.data.agent.position.clone().add(moveVec);
+
+        if (this.data.agent.position.distance(target.clone()) < this.data.agent.radius) {
+            this.data.agent.position = target.clone()
+            this._isDone = true;
+        } else {
+            this.data.agent.position = newPos.clone();
+        }
+    }
+
+    isDone() {
+        return this._isDone;
+    }
+
+    afterExecute() {
+        this.data.agent.hasAction = false;
+    }
+}
+
+export class AgentSeekItemAction extends Action {
+    /**
+     * Constructor
+     * @param {Object} data -
+     *      {
+     *
+     *
      *      }
      */
     constructor(data) {
@@ -114,18 +203,60 @@ export class AgentWaitAction extends Action {
 
     beforeExecute() {
         this.data.agent.hasAction = true;
-        this._isDone = false;
-        this._hasTimeout = false;
     }
 
     execute() {
-        if (!this._hasTimeout) {
-            setTimeout(() => {
-                this._isDone = true;
-            }, this.data.time);
+        let updateDest = () => {
+            let deltaVec = this.data.destination.clone().subtract(this.data.origPosition).normalize(),
+                speedVec = new Victor(this.data.speed, this.data.speed),
+                moveVec = deltaVec.clone().multiply(speedVec),
+                newPos = this.data.agent.position.clone().add(moveVec);
 
-            this._hasTimeout = true;
+            if (this.data.agent.position.distance(this.data.destination) < this.data.agent.radius) {
+                this.data.agent.position = this.data.destination.clone();
+            } else {
+                this.data.agent.position = newPos.clone();
+            }
+            //console.log(this.data.destination);
         }
+
+        updateDest();
+    }
+
+    isDone() {
+        //return this._isDone;
+        return this.data.agent.position.x === this.data.destination.x
+            && this.data.agent.position.y === this.data.destination.y;
+    }
+
+    afterExecute() {
+        this.data.agent.hasAction = false;
+    }
+}
+
+export class AgentAvoidAction extends Action {
+    /**
+     * Constructor
+     * @param {Object} data -
+     *      {
+     *          agent - agent doing the actions
+     *          avoid - group of other agents the agent will avoid
+     *          origPosition
+     *
+     *
+     *
+     *      }
+     */
+    constructor(data) {
+        super(data);
+    }
+
+    beforeExecute() {
+        this.data.agent.hasAction = true;
+    }
+
+    execute() {
+
     }
 
     isDone() {

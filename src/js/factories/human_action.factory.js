@@ -4,39 +4,60 @@
 import * as Random from 'random-js';
 import { CONFIG } from '../config/config';
 import {
+    HumanChaseOthersAction,
+    HumanIdleAction,
+    HumanMoveAction,
+    HumanAvoidOtherAction,
+} from '../classes/actions/human.actions';
+import {
     AgentMoveAction,
     AgentColorChangeAction,
-    AgentWaitAction
+    AgentWaitAction,
+    AgentChaseAction,
 } from '../classes/actions/agent.actions';
 import {
     getRandomDestination,
     getRandomColor,
     objectCollision,
     getNearestItem,
+    getFurthestPosition,
 } from './helpers';
 
-export const getHumanAction = (human, currentItems) => {
-    let randomAction = Random.picker(['seekItem', 'randomMove', 'wait'])(Random.engines.nativeMath);
+export const getHumanAction = (human, currentHumans, currentZombies, currentItems) => {
+    let randomAction = Random.picker(['seekItem', 'randomMove', 'groupMove'])(Random.engines.nativeMath);
 
     switch(randomAction) {
         case 'seekItem':
-            return new AgentMoveAction({
-                agent: human,
+            return new HumanChaseOthersAction({
+                human,
+                others: currentItems,
+                speed: CONFIG.bodies.agent.human.speed,
+            });
+        case 'avoidZombie':
+            return new HumanAvoidOtherAction({
+                human,
+                avoid: currentZombies,
                 origPosition: human.position.clone(),
-                destination: getNearestItem(human, currentItems),
-                speed: CONFIG.agent.human.speed,
+                destination: getFurthestPosition(human, currentZombies),
             });
         case 'randomMove':
-            return new AgentMoveAction({
-                agent: human,
+            return new HumanMoveAction({
+                human,
                 origPosition: human.position.clone(),
                 destination: getRandomDestination(),
-                speed: CONFIG.agent.human.speed,
+                speed: CONFIG.bodies.agent.human.speed,
+            });
+        case 'groupMove':
+            return new HumanMoveAction({
+                human,
+                origPosition: human.position.clone(),
+                destination: /**getNearestItem(human, currentHumans),*/ currentHumans[6].position,
+                speed: CONFIG.bodies.agent.human.speed,
             });
         case "wait":
-            return new AgentWaitAction({
-                agent: human,
-                time: CONFIG.agent.human.waitTime,
-            });
+            return new HumanIdleAction({
+                human,
+                time: CONFIG.bodies.agent.human.waitTime,
+        });
     }
 };

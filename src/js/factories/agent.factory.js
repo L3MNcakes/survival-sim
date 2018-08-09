@@ -1,6 +1,7 @@
 /**
  * agent.factory.js
  */
+import { Bodies } from '../classes/bodies.class';
 import { Agent } from '../classes/agent.class';
 import { Charmander } from '../classes/charmander.class';
 import { Human } from '../classes/human.class';

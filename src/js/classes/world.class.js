@@ -3,17 +3,21 @@
  */
 import * as PIXI from 'pixi.js';
 import { CONFIG } from '../config/config';
-import { generateRandomItems } from '../factories/item.factory';
 import { ActionQueue } from './actions/action_queue.class';
+import { getAgentAction } from '../factories/agent_action.factory';
+import { getHumanAction } from '../factories/human_action.factory';
+import { getZombieAction } from '../factories/zombie_action.factory';
+import { getItemAction } from '../factories/item_action.factory';
+import { generateGhost } from '../factories/ghost.factory';
+import {
+    generateRandomItems,
+    generateOneItem,
+ } from '../factories/item.factory';
 import {
     generateRandomAgents,
     generateRandomHumans,
     generateRandomZombies
 } from '../factories/agent.factory';
-import { getAgentAction } from '../factories/agent_action.factory';
-import { getHumanAction } from '../factories/human_action.factory';
-import { getZombieAction } from '../factories/zombie_action.factory';
-import { getItemAction } from '../factories/item_action.factory';
 
 export class World {
     constructor() {
@@ -22,41 +26,39 @@ export class World {
         //this.pixiApp.screen.width;
         //this.pixiApp.screen.height;
 
-        this.agents = generateRandomAgents(
-            CONFIG.agent.initNum,
-            window.screen.width,
-            window.screen.height,
-            /**
+        this.ghost = generateGhost();
+
+        this.items = generateRandomItems(
+            CONFIG.bodies.item.initNum,
             CONFIG.world.width,
             CONFIG.world.height,
-            */
-            CONFIG.agent.color,
-            CONFIG.agent.radius
+            CONFIG.bodies.item.color,
+            CONFIG.bodies.item.radius,
+        );
+
+        this.agents = generateRandomAgents(
+            CONFIG.bodies.agent.initNum,
+            CONFIG.world.width,
+            CONFIG.world.height,
+            CONFIG.bodies.agent.color,
+            CONFIG.bodies.agent.radius
         );
 
         this.humans = generateRandomHumans(
-            CONFIG.agent.human.initNum,
+            CONFIG.bodies.agent.human.initNum,
             CONFIG.world.width,
             CONFIG.world.height,
-            CONFIG.agent.human.color,
-            CONFIG.agent.human.radius,
+            CONFIG.bodies.agent.human.color,
+            CONFIG.bodies.agent.human.radius,
         );
 
 
         this.zombies = generateRandomZombies(
-            CONFIG.agent.zombie.initNum,
+            CONFIG.bodies.agent.zombie.initNum,
             CONFIG.world.width,
             CONFIG.world.height,
-            CONFIG.agent.zombie.color,
-            CONFIG.agent.zombie.radius,
-        )
-
-        this.items = generateRandomItems(
-            CONFIG.item.initNum,
-            CONFIG.world.width,
-            CONFIG.world.height,
-            CONFIG.item.color,
-            CONFIG.item.radius,
+            CONFIG.bodies.agent.zombie.color,
+            CONFIG.bodies.agent.zombie.radius,
         );
 
         this.updateInterval = null;
@@ -71,7 +73,7 @@ export class World {
     }
 
     stop() {
-        clearInterval(this.tickInterval);
+        clearInterval(this.updateInterval);
     }
 
     createNewPixiApp() {
@@ -88,9 +90,28 @@ export class World {
     }
 
     update() {
+        this.ghost = (ghost) => {
+            if(!ghost.hasAction) {
+                let action = getGhostAction(ghost, this.agents, this.humans, this.zombies);
+                this.actionQueue.addAction(action);
+            }
+
+            ghost.update();
+        };
+
+        this.items.map( (item) => {
+            if(!item.hasAction) {
+                let action = getItemAction(item, this.humans, this.agents);
+                this.actionQueue.addAction(action);
+            }
+
+            item.update();
+            this.pixiApp.stage.addChild(item.pixiGraphic);
+        });
+
         this.agents.map( (agent) => {
             if (!agent.hasAction) {
-                let action = getAgentAction(agent, this.items);
+                let action = getAgentAction(agent, this.items, this.humans, this.zombies);
                 this.actionQueue.addAction(action);
             }
 
@@ -100,7 +121,7 @@ export class World {
 
         this.humans.map( (human) => {
             if (!human.hasAction) {
-                let action = getHumanAction(human, this.items);
+                let action = getHumanAction(human, this.humans, this.zombies, this.items);
                 this.actionQueue.addAction(action);
             }
 
@@ -118,18 +139,52 @@ export class World {
             this.pixiApp.stage.addChild(zombie.pixiGraphic);
         });
 
-        this.items.map( (item) => {
-            if(!item.hasAction) {
-                let action = getItemAction(item, this.humans);
-
-                this.actionQueue.addAction(action);
-            }
-
-            item.update();
-            this.pixiApp.stage.addChild(item.pixiGraphic);
-        });
-
         this.actionQueue.execute();
+        this.cleanup();
+        //console.log(this.items);
+    }
+
+    cleanup() {
+        this.items = this.items.map( (item) => {
+            if (item.shouldCleanup) {
+                return false;
+            } else {
+                return item;
+            }
+        }).filter(Boolean);
+
+        if (this.items.length < CONFIG.bodies.item.initNum) {
+            this.items.push(generateOneItem(
+                CONFIG.world.width,
+                CONFIG.world.height,
+                CONFIG.bodies.item.color,
+                CONFIG.bodies.item.radius,
+            ));
+        };
+
+        this.agents = this.agents.map( (agent) => {
+            if (agent.shouldCleanup) {
+                return false;
+            } else {
+                return agent;
+            }
+        }).filter(Boolean);
+
+        this.humans = this.humans.map( (human) => {
+            if (human.shouldCleanup) {
+                return false;
+            } else {
+                return human;
+            }
+        }).filter(Boolean);
+
+        this.zombies = this.zombies.map( (zombie) => {
+            if (zombie.shouldCleanup) {
+                return false;
+            } else {
+                return zombie;
+            }
+        }).filter(Boolean);
     }
 
     render() {

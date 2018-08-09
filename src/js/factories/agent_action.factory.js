@@ -3,10 +3,14 @@
  */
 import * as Random from 'random-js';
 import { CONFIG } from '../config/config';
+import { HumanChaseOthersAction } from '../classes/actions/human.actions';
+import { ZombieChaseHumansAction } from '../classes/actions/zombie.actions';
 import {
     AgentMoveAction,
     AgentColorChangeAction,
-    AgentWaitAction
+    AgentWaitAction,
+    AgentChaseAction,
+    AgentChaseOthersAction,
 } from '../classes/actions/agent.actions';
 import {
     getRandomDestination,
@@ -15,33 +19,44 @@ import {
     getNearestItem,
 } from './helpers';
 
-export const getAgentAction = (agent, currentItems) => {
-    let randomAction = Random.picker(['move', 'seek', 'color', 'wait'])(Random.engines.nativeMath);
+export const getAgentAction = (agent, currentItems, currentHumans, currentZombies) => {
+    let randomAction = Random.picker(['randomMove', 'seekItem', 'color', 'wait', 'chaseHuman', 'chaseZombie'])(Random.engines.nativeMath);
 
     switch(randomAction) {
-        case 'seek':
-            return new AgentMoveAction({
+        case 'seekItem':
+            return new AgentChaseOthersAction({
                 agent: agent,
-                origPosition: agent.position.clone(),
-                destination: getNearestItem(agent, currentItems),
-                speed: CONFIG.maxSpeed
+                others: currentItems,
+                speed: CONFIG.bodies.agent.speed,
+            });
+        case 'chaseHuman':
+            return new AgentChaseOthersAction({
+                agent,
+                others: currentHumans,
+                speed: CONFIG.bodies.agent.speed,
+            });
+        case 'chaseZombie':
+            return new AgentChaseOthersAction({
+                agent,
+                others: currentZombies,
+                speed: CONFIG.bodies.agent.speed,
             });
         case 'color':
             return new AgentColorChangeAction({
                 agent: agent,
                 color: getRandomColor(),
             });
-        case 'move':
+        case 'randomMove':
             return new AgentMoveAction({
                 agent: agent,
                 origPosition: agent.position.clone(),
                 destination: getRandomDestination(),
-                speed: CONFIG.maxSpeed,
+                speed: CONFIG.bodies.agent.speed,
             });
         case 'wait':
             return new AgentWaitAction({
                 agent: agent,
-                time: CONFIG.agent.waitTime,
+                time: CONFIG.bodies.agent.waitTime,
             });
     }
 }

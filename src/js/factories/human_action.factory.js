@@ -8,6 +8,7 @@ import {
     HumanIdleAction,
     HumanMoveAction,
     HumanAvoidOtherAction,
+    HumanActionChainExample1
 } from '../classes/actions/human.actions';
 import {
     AgentMoveAction,
@@ -24,7 +25,7 @@ import {
 } from './helpers';
 
 export const getHumanAction = (human, currentHumans, currentZombies, currentItems) => {
-    let randomAction = Random.picker(['seekItem', 'randomMove', 'groupMove'])(Random.engines.nativeMath);
+    let randomAction = Random.picker(['seekItem', 'randomMove', 'groupMove', 'chainedAction'])(Random.engines.nativeMath);
 
     switch(randomAction) {
         case 'seekItem':
@@ -58,6 +59,10 @@ export const getHumanAction = (human, currentHumans, currentZombies, currentItem
             return new HumanIdleAction({
                 human,
                 time: CONFIG.bodies.agent.human.waitTime,
-        });
+            });
+        case "chainedAction":
+            return new HumanActionChainExample1({
+                human,
+            });
     }
 };

@@ -38,4 +38,12 @@ export class Action {
      * This method defines the behavior to execute after the action has completed.
      */
     afterExecute() { }
+
+    /**
+     * This method allows a new action to be added to the queue upon completion of
+     * the current action. Return false to kill the action chain.
+     */
+    nextAction() {
+        return false;
+    }
 }

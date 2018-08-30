@@ -21,6 +21,6 @@ import {
 
 export class Agent extends Bodies {
     constructor(position, color, radius) {
-            super(position, color, radius);
+        super(position, color, radius);
     }
 }

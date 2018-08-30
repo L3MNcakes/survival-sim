@@ -41,7 +41,7 @@ export class ActionQueue {
             }
 
             action.afterExecute();
-            return false;
+            return action.nextAction();
         }).filter(Boolean);
     }
 }

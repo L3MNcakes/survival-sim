@@ -12,7 +12,7 @@ export class HumanChaseOthersAction extends Action {
      * @param {Object} data -
      *      {
      *          human - The human that's performing the action
-                others - A list of other things to chase after
+     *          others - A list of other things to chase after
      *          speed - The speed the human chases at
      *      }
      */
@@ -151,9 +151,6 @@ export class HumanAvoidOtherAction extends Action {
      *          human - human doing the actions
      *          avoid - group of other humans the human will avoid
      *          origPosition
-     *
-     *
-     *
      *      }
      */
     constructor(data) {
@@ -166,6 +163,75 @@ export class HumanAvoidOtherAction extends Action {
 
     execute() {
 
+    }
+
+    isDone() {
+        return this._isDone;
+    }
+
+    afterExecute() {
+        this.data.human.hasAction = false;
+    }
+}
+
+export class HumanActionChainExample1 extends Action {
+    /**
+     * Constructor
+     * @param {Object} data - {
+     *      human - the human performing the action
+     * }
+     */
+    constructor(data) {
+        super(data);
+        this.data.human.hasAction = true;
+        this._isDone = false;
+        this._hasTimeout = false;
+    }
+
+    execute() {
+        if (!this._hasTimeout) {
+            console.log("Waiting 5 seconds for first action...");
+
+            setTimeout(() => {
+                this._isDone = true;
+            }, 5000);
+
+            this._hasTimeout = true;
+        }
+    }
+
+    isDone() {
+        return this._isDone;
+    }
+
+    nextAction() {
+        return new HumanActionChainExample2(this.data);
+    }
+}
+
+export class HumanActionChainExample2 extends Action {
+    /**
+     * Constructor
+     * @param {Object} data - {
+     *      human - the human performing the action
+     * }
+     */
+    constructor(data) {
+        super(data);
+        this._isDone = false;
+        this._hasTimeout = false;
+    }
+
+    execute() {
+        if (!this._hasTimeout) {
+            console.log("Waiting 5 seconds for second action...");
+
+            setTimeout(() => {
+                this._isDone = true;
+            }, 5000);
+
+            this._hasTimeout = true;
+        }
     }
 
     isDone() {

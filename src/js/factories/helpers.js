@@ -25,10 +25,15 @@ export const getRandomDestination = () => {
 
 //Used in factories (generating assets)
 export const randomPosition = (maxX, maxY) => {
- return new Victor(
-     Random.integer(0, maxX)(Random.engines.nativeMath),
-     Random.integer(0, maxY)(Random.engines.nativeMath)
- );
+    return new Victor(
+        Random.integer(0, maxX)(Random.engines.nativeMath),
+        Random.integer(0, maxY)(Random.engines.nativeMath)
+    );
+};
+
+//Used in factories, spawning specific places
+export const fixedPosition = (posX, posY) => {
+    return new Victor(posX, posY);
 };
 
 //export const getCleanStatus = ();
@@ -44,6 +49,14 @@ export const getFurthestPosition = (checkingBody, avoidBodies) => {
         randomPositions = (cheBodyLoca, avoBodyLoca, avoBodyDist) => {
 
         };
+};
+
+// Area allowed to travel, and redirrected if it exeeds Area
+export const checkCanvasArea = (checkingBody) => {
+    let canMaxX = CONFIG.world.width,
+        canMaxY = CONFIG.world.height,
+        bodyX = checkingBody.position.x,
+        bodyY = checkingBody.position.y;
 };
 
 /**
@@ -76,7 +89,8 @@ export const getNearestItem = (agent, items) => {
         return items[closestIndex].position;
 };
 
-export const getActualNearestAgent = (from, agents) => {
+//Gives position of nearest agent (getActualNearestAgent)
+export const getNearestAgentPosition = (from, agents) => {
     let agentDistances = agents.map((agent) => {
         return agent.position.clone().distance(from.position);
     });
@@ -85,6 +99,23 @@ export const getActualNearestAgent = (from, agents) => {
         closestIndex = agentDistances.indexOf(closestDistance);
 
     return agents[closestIndex].position.clone();
+}
+
+//Gives name of nearest agent
+export const getNearestAgentInfo = (from, agents) => {
+    let agentDistances = agents.map((agent) => {
+        return agent.position.clone().distance(from.position);
+    });
+
+    let closestDistance = Math.min(...agentDistances),
+        closestIndex = agentDistances.indexOf(closestDistance);
+
+    return agents[closestIndex];
+}
+
+//Returns all Agent info -- ***not sure if works
+export const getAgentsInfo = (agents) => {
+    return agents;
 }
 
 //Needs revision

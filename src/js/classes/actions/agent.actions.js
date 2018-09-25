@@ -6,10 +6,10 @@ let Victor = require('victor');
 import { CONFIG } from '../../config/config';
 import { Action } from './action.class';
 import {
-    getNearestAgent,
+    getNearestAgentInfo,
     getRandomDestination,
     objectCollision,
-    getActualNearestAgent,
+    getNearestAgentPosition,
 } from '../../factories/helpers';
 
 export class AgentMoveAction extends Action {
@@ -31,7 +31,7 @@ export class AgentMoveAction extends Action {
      * Tell the agent it has started performing an action.
      */
     beforeExecute() {
-        this.data.agent.hasAction = true;
+        this.data.agent.toggles.hasAction = true;
     }
 
     /**
@@ -63,7 +63,7 @@ export class AgentMoveAction extends Action {
      * Tell the agent it is no longer performing an action
      */
     afterExecute() {
-        this.data.agent.hasAction = false;
+        this.data.agent.toggles.hasAction = false;
     }
 }
 
@@ -81,7 +81,7 @@ export class AgentWaitAction extends Action {
     }
 
     beforeExecute() {
-        this.data.agent.hasAction = true;
+        this.data.agent.toggles.hasAction = true;
         this._isDone = false;
         this._hasTimeout = false;
     }
@@ -101,7 +101,7 @@ export class AgentWaitAction extends Action {
     }
 
     afterExecute() {
-        this.data.agent.hasAction = false;
+        this.data.agent.toggles.hasAction = false;
     }
 }
 
@@ -119,7 +119,7 @@ export class AgentColorChangeAction extends Action {
     }
 
     beforeExecute() {
-        this.data.agent.hasAction = true;
+        this.data.agent.toggles.hasAction = true;
         this.executeOnce = false;
     }
 
@@ -140,10 +140,11 @@ export class AgentColorChangeAction extends Action {
     }
 
     afterExecute() {
-        this.data.agent.hasAction = false;
+        this.data.agent.toggles.hasAction = false;
     }
 }
 
+//Chasing Other Agents
 export class AgentChaseOthersAction extends Action {
     /**
      * Constructor
@@ -151,6 +152,7 @@ export class AgentChaseOthersAction extends Action {
      *      {
      *          agent - The agent that's performing the action
                 others - A list of other things to chase after
+                affectStat - The stat that is affected if action is successful
      *          speed - The speed the agent chases at
      *      }
      */
@@ -161,19 +163,22 @@ export class AgentChaseOthersAction extends Action {
     }
 
     beforeExecute() {
-        this.data.agent.hasAction = true;
+        this.data.agent.toggles.hasEaten = false;
+        this.data.agent.toggles.hasAction = true;
     }
 
     execute() {
-        let target = getActualNearestAgent(this.data.agent, this.data.others),
+        let target = getNearestAgentPosition(this.data.agent, this.data.others),
+            targetInfo = getNearestAgentInfo(this.data.agent, this.data.others),
             deltaVec = target.clone().subtract(this.data.agent.position.clone()).normalize(),
-            speedVec = new Victor(this.data.speed, this.data.speed),
+            speedVec = new Victor(this.data.agent.moveStats.currentSpeed, this.data.agent.moveStats.currentSpeed),
             moveVec = deltaVec.clone().multiply(speedVec),
             newPos = this.data.agent.position.clone().add(moveVec);
 
         if (this.data.agent.position.distance(target.clone()) < this.data.agent.radius) {
             this.data.agent.position = target.clone()
             this._isDone = true;
+            this.data.agent.info.killedList.push(targetInfo);
         } else {
             this.data.agent.position = newPos.clone();
         }
@@ -183,12 +188,134 @@ export class AgentChaseOthersAction extends Action {
         return this._isDone;
     }
 
+    nextAction() {
+        //return new AgentCheckInteractAction(this.data);
+    }
+
     afterExecute() {
-        this.data.agent.hasAction = false;
+        this.data.agent.toggles.hasKilled = true;
+        this.data.agent.toggles.hasAction = false;
     }
 }
 
+//"Chasing" Item
 export class AgentSeekItemAction extends Action {
+    /**
+     * Constructor
+     * @param {Object} data -
+     *      {
+     *          agent - The agent that's performing the action
+     *          items - A list of items to chase after
+     *          affectStat - The stat that is affected if action is successful
+     *          speed - The speed the agent chases at
+     *      }
+     */
+    constructor(data) {
+        super(data);
+
+        this._isDone = false;
+    }
+
+    beforeExecute() {
+        this.data.affectStat = false;
+        this.data.agent.toggles.hasAction = true;
+    }
+
+    execute() {
+        let target = getNearestAgentPosition(this.data.agent, this.data.items),
+            targetInfo = getNearestAgentInfo(this.data.agent, this.data.items),
+            deltaVec = target.clone().subtract(this.data.agent.position.clone()).normalize(),
+            speedVec = new Victor(this.data.agent.moveStats.currentSpeed, this.data.agent.moveStats.currentSpeed),
+            moveVec = deltaVec.clone().multiply(speedVec),
+            newPos = this.data.agent.position.clone().add(moveVec);
+
+        if (!targetInfo.toggles.isTaken || !targetInfo.toggles.isSought) { /**isSought not working? -- still go after same item till gone**/
+            if (this.data.agent.position.distance(target.clone()) < this.data.agent.radius) {
+                this.data.agent.position = target.clone()
+                this._isDone = true;
+                this.data.affectStat = true;
+                //this.data.agent.hasKilled.push(targetInfo);
+            } else {
+                targetInfo.toggles.isSought = true;
+                this.data.agent.position = newPos.clone();
+            }
+        } else {
+            this._isDone = true;
+        }
+
+    }
+
+    isDone() {
+        return this._isDone;
+    }
+
+    nextAction() {
+        //return new AgentCheckInteractAction(this.data);
+    }
+
+    afterExecute() {
+        this.data.agent.toggles.hasAction = false;
+    }
+}
+
+//Not used -- (nextAction)
+export class AgentCheckInteractAction extends Action {
+    /**
+     * Constructor
+     * @param {Object} data -
+     *      {
+     *          agent - The agent that's performing the action
+     *          others - A list of other things to chase after
+     *      }
+     */
+    constructor(data) {
+        super(data);
+
+        this._isDone = false;
+    }
+
+    beforeExecute() {
+        this.data.agent.toggles.hasAction = true;
+    }
+
+    execute() {
+        let target = getNearestAgentPosition(this.data.agent, this.data.others);
+
+        if (this.data.agent.position == getNearestAgentPosition(this.data.agent, this.data.others)) {
+            //this.data.agent.has__Eaten = true;
+        }
+
+        this._isDone = true;
+        /**
+        let target = getNearestAgentPosition(this.data.agent, this.data.others),
+            deltaVec = target.clone().subtract(this.data.agent.position.clone()).normalize(),
+            speedVec = new Victor(this.data.moveStats.currentSpeed, this.data.moveStats.currentSpeed),
+            moveVec = deltaVec.clone().multiply(speedVec),
+            newPos = this.data.agent.position.clone().add(moveVec);
+
+        if (this.data.agent.position.distance(target.clone()) < this.data.agent.radius) {
+            this.data.agent.position = target.clone()
+            this._isDone = true;
+        } else {
+            this.data.agent.position = newPos.clone();
+        }
+        */
+    }
+
+    isDone() {
+        return this._isDone;
+    }
+
+    nextAction() {
+
+    }
+
+    afterExecute() {
+        this.data.agent.toggles.hasAction = false;
+    }
+}
+
+export class AgentSeekItemAction_old extends Action {
     /**
      * Constructor
      * @param {Object} data -
@@ -202,7 +329,7 @@ export class AgentSeekItemAction extends Action {
     }
 
     beforeExecute() {
-        this.data.agent.hasAction = true;
+        this.data.agent.toggles.hasAction = true;
     }
 
     execute() {
@@ -230,7 +357,7 @@ export class AgentSeekItemAction extends Action {
     }
 
     afterExecute() {
-        this.data.agent.hasAction = false;
+        this.data.agent.toggles.hasAction = false;
     }
 }
 
@@ -252,7 +379,7 @@ export class AgentAvoidAction extends Action {
     }
 
     beforeExecute() {
-        this.data.agent.hasAction = true;
+        this.data.agent.toggles.hasAction = true;
     }
 
     execute() {
@@ -264,6 +391,6 @@ export class AgentAvoidAction extends Action {
     }
 
     afterExecute() {
-        this.data.agent.hasAction = false;
+        this.data.agent.toggles.hasAction = false;
     }
 }

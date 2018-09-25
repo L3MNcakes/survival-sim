@@ -4,7 +4,11 @@
 let Victor = require('victor');
 
 import { Action } from './action.class';
-import { getActualNearestAgent } from '../../factories/helpers';
+import {
+    getNearestAgentPosition,
+    getNearestAgentInfo,
+    getAgentsInfo
+} from '../../factories/helpers';
 
 /**
  * This action will allow a zombie to chase after the nearest human it can find.
@@ -15,7 +19,8 @@ export class ZombieChaseHumansAction extends Action {
      * @param {Object} data -
      *      {
      *          zombie - The zombie that's performing the action
-                humans - A list of humans to chase after
+     *          humans - A list of humans to chase after
+     *          seekRadius - area the zombie starts to 'seek'
      *          speed - The speed the zombie chases at
      *      }
      */
@@ -26,30 +31,67 @@ export class ZombieChaseHumansAction extends Action {
     }
 
     beforeExecute() {
-        this.data.zombie.hasAction = true;
+        this.data.zombie.toggles.hasAction = true;
+
+        //if () {}
     }
 
     execute() {
-        let target = getActualNearestAgent(this.data.zombie, this.data.humans),
+        let target = getNearestAgentPosition(this.data.zombie, this.data.humans),
+            targetInfo = getNearestAgentInfo(this.data.zombie, this.data.humans),
+            allHumanInfo = getAgentsInfo(this.data.humans), //not sure :o
             deltaVec = target.clone().subtract(this.data.zombie.position.clone()).normalize(),
             speedVec = new Victor(this.data.speed, this.data.speed),
             moveVec = deltaVec.clone().multiply(speedVec),
             newPos = this.data.zombie.position.clone().add(moveVec);
 
-        if (this.data.zombie.position.distance(target.clone()) < this.data.zombie.radius) {
-            this.data.zombie.position = target.clone()
-            this._isDone = true;
-        } else {
-            this.data.zombie.position = newPos.clone();
+        /**
+        if (target !== allHumanInfo.map()) {
+            () => {
+                //human.isSought = false;
+                //return human
+            };
         }
+        **/
+
+        if (!targetInfo.toggles.isCaught) {
+            if (this.data.zombie.position.distance(target.clone()) < this.data.seekRadius) {
+                targetInfo.toggles.isSought = true;
+            } else {
+                targetInfo.toggles.isSought = false;
+            }
+
+            if (this.data.zombie.position.distance(target.clone()) < this.data.zombie.radius) {
+                this.data.zombie.position = newPos.clone()
+                targetInfo.toggles.isCaught = true;
+                //targetInfo.deathSpot = targetInfo.position.clone();
+                targetInfo.info.taker = ['zombie'];
+                this.data.zombie.toggles.isEating = true;
+                this._isDone = true;
+            } else {
+                this.data.zombie.position = newPos.clone();
+            }
+        } else {
+            this._isDone;
+        }
+
+        //console.log(allHumanInfo.map(human));
     }
 
     isDone() {
         return this._isDone;
     }
 
+    nextAction() {
+        if (this.data.zombie.toggles.isEating) {
+            return new ZombieIdleAction(this.data);
+            this.data.zombie.toggles.isEating = false;
+        }
+    }
+
     afterExecute() {
-        this.data.zombie.hasAction = false;
+        this.data.zombie.toggles.hasEaten = true;
+        //this.data.zombie.hasAction = false; // might need removed
     }
 }
 
@@ -67,7 +109,7 @@ export class ZombieIdleAction extends Action {
     }
 
     beforeExecute() {
-        this.data.zombie.hasAction = true;
+        this.data.zombie.toggles.hasAction = true;
         this._isDone = false;
         this._hasTimeout = false;
     }
@@ -87,7 +129,7 @@ export class ZombieIdleAction extends Action {
     }
 
     afterExecute() {
-        this.data.zombie.hasAction = false;
+        this.data.zombie.toggles.hasAction = false;
     }
 }
 
@@ -110,7 +152,7 @@ export class ZombieWanderAction extends Action {
      * Tell the zombie it has started performing an action.
      */
     beforeExecute() {
-        this.data.zombie.hasAction = true;
+        this.data.zombie.toggles.hasAction = true;
     }
 
     /**
@@ -142,6 +184,6 @@ export class ZombieWanderAction extends Action {
      * Tell the zombie it is no longer performing an action
      */
     afterExecute() {
-        this.data.zombie.hasAction = false;
+        this.data.zombie.toggles.hasAction = false;
     }
 }

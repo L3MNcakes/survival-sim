@@ -4,19 +4,29 @@
 import * as PIXI from 'pixi.js';
 import { CONFIG } from '../config/config';
 import { ActionQueue } from './actions/action_queue.class';
-import { getAgentAction } from '../factories/agent_action.factory';
-import { getHumanAction } from '../factories/human_action.factory';
-import { getZombieAction } from '../factories/zombie_action.factory';
-import { getItemAction } from '../factories/item_action.factory';
+import { getAgentAction } from '../factories/actions/agent_action.factory';
+import { getHumanAction } from '../factories/actions/human_action.factory';
+import { getZombieAction } from '../factories/actions/zombie_action.factory';
+import { getItemAction } from '../factories/actions/item_action.factory';
+import { getFoodAction } from '../factories/actions/food_action.factory';
+import { getWeaponAction } from '../factories/actions/weapon_action.factory';
+import { getGhostAction } from '../factories/actions/ghost_action.factory';
 import { generateGhost } from '../factories/ghost.factory';
 import {
     generateRandomItems,
+    generateRandomFoods,
+    generateRandomWeapons,
     generateOneItem,
- } from '../factories/item.factory';
+    generateOneFood,
+    generateOneWeapon,
+} from '../factories/item.factory';
 import {
     generateRandomAgents,
     generateRandomHumans,
-    generateRandomZombies
+    generateRandomZombies,
+    generateOneHuman,
+    generateOneZombie,
+    spawnZombie,
 } from '../factories/agent.factory';
 
 export class World {
@@ -26,7 +36,7 @@ export class World {
         //this.pixiApp.screen.width;
         //this.pixiApp.screen.height;
 
-        this.ghost = generateGhost();
+        this.ghosts = generateGhost();
 
         this.items = generateRandomItems(
             CONFIG.bodies.item.initNum,
@@ -36,12 +46,46 @@ export class World {
             CONFIG.bodies.item.radius,
         );
 
+        this.foods = generateRandomFoods(
+            CONFIG.bodies.item.food.initNum,
+            CONFIG.world.width,
+            CONFIG.world.height,
+            CONFIG.bodies.item.food.color,
+            CONFIG.bodies.item.food.radius,
+        );
+
+        this.weapons = generateRandomWeapons(
+            CONFIG.bodies.item.weapon.initNum,
+            CONFIG.world.width,
+            CONFIG.world.height,
+            CONFIG.bodies.item.weapon.color,
+            CONFIG.bodies.item.weapon.radius,
+        );
+
         this.agents = generateRandomAgents(
             CONFIG.bodies.agent.initNum,
             CONFIG.world.width,
             CONFIG.world.height,
             CONFIG.bodies.agent.color,
-            CONFIG.bodies.agent.radius
+            CONFIG.bodies.agent.radius,
+
+            {
+                moveStats: {
+                    lowSpeed: CONFIG.bodies.agent.moveStats.speedLow,
+                    highestSpeed: CONFIG.bodies.agent.moveStats.speedHigh,
+                    baseSpeed: CONFIG.bodies.agent.moveStats.speedBase,
+                    currentSpeed: CONFIG.bodies.agent.moveStats.speedCurrent,
+                },
+                nutritionStats: {
+                    bonus:  CONFIG.bodies.agent.nutritionStats.bonues,
+                    penalty: CONFIG.bodies.agent.nutritionStats.penalty,
+                },
+                fightStats: {
+                    attack: CONFIG.bodies.agent.fightStats.attack,
+                    defense: CONFIG.bodies.agent.fightStats.defense,
+                    dodge: CONFIG.bodies.agent.fightStats.dodge,
+                }
+            }
         );
 
         this.humans = generateRandomHumans(
@@ -50,6 +94,24 @@ export class World {
             CONFIG.world.height,
             CONFIG.bodies.agent.human.color,
             CONFIG.bodies.agent.human.radius,
+
+            {
+                moveStats: {
+                    lowSpeed: CONFIG.bodies.agent.human.moveStats.speedLow,
+                    highestSpeed: CONFIG.bodies.agent.human.moveStats.speedHigh,
+                    baseSpeed: CONFIG.bodies.agent.human.moveStats.speedBase,
+                    currentSpeed: CONFIG.bodies.agent.human.moveStats.speedCurrent,
+                },
+                nutritionStats: {
+                    bonus:  CONFIG.bodies.agent.human.nutritionStats.bonues,
+                    penalty: CONFIG.bodies.agent.human.nutritionStats.penalty,
+                },
+                fightStats: {
+                    attack: CONFIG.bodies.agent.human.fightStats.attack,
+                    defense: CONFIG.bodies.agent.human.fightStats.defense,
+                    dodge: CONFIG.bodies.agent.human.fightStats.dodge,
+                }
+            }
         );
 
 
@@ -59,7 +121,53 @@ export class World {
             CONFIG.world.height,
             CONFIG.bodies.agent.zombie.color,
             CONFIG.bodies.agent.zombie.radius,
+
+            {
+                moveStats: {
+                    lowSpeed: CONFIG.bodies.agent.zombie.moveStats.speedLow,
+                    highestSpeed: CONFIG.bodies.agent.zombie.moveStats.speedHigh,
+                    baseSpeed: CONFIG.bodies.agent.zombie.moveStats.speedBase,
+                    currentSpeed: CONFIG.bodies.agent.zombie.moveStats.speedCurrent,
+                },
+                nutritionStats: {
+                    bonus:  CONFIG.bodies.agent.zombie.nutritionStats.bonues,
+                    penalty: CONFIG.bodies.agent.zombie.nutritionStats.penalty,
+                },
+                fightStats: {
+                    attack: CONFIG.bodies.agent.zombie.fightStats.attack,
+                    defense: CONFIG.bodies.agent.zombie.fightStats.defense,
+                    dodge: CONFIG.bodies.agent.zombie.fightStats.dodge,
+                }
+            }
         );
+
+        this.getGrouped = () => {
+            let groupedBodies = {
+                ghosts: this.ghosts,
+                items: this.items,
+                foods: this.foods,
+                weapons: this.weapons,
+                agents: this.agents,
+                humans: this.humans,
+                zombies: this.zombies
+            };
+            return console.log(groupedBodies);
+        }
+
+        /**
+        this.displayGenStats = () => {
+            let _statUpdate = false;
+
+            if (!_statUpdate) {
+                _statUpdate = true;
+                setTimeout(() => {
+                    console.log(`5 sec update:`);
+                    this.getGrouped();
+                    _statUpdate = false;
+                }, 5000);
+            }
+        }
+        **/
 
         this.updateInterval = null;
     }
@@ -90,17 +198,20 @@ export class World {
     }
 
     update() {
-        this.ghost = (ghost) => {
-            if(!ghost.hasAction) {
+        this.getGrouped();
+        //this.displayGenStats();
+
+        this.ghosts.map( (ghost) => {
+            if(!ghost.toggles.hasAction) {
                 let action = getGhostAction(ghost, this.agents, this.humans, this.zombies);
                 this.actionQueue.addAction(action);
             }
 
             ghost.update();
-        };
+        });
 
         this.items.map( (item) => {
-            if(!item.hasAction) {
+            if(!item.toggles.hasAction) {
                 let action = getItemAction(item, this.humans, this.agents);
                 this.actionQueue.addAction(action);
             }
@@ -109,9 +220,30 @@ export class World {
             this.pixiApp.stage.addChild(item.pixiGraphic);
         });
 
+        this.foods.map( (food) => {
+            if(!food.toggles.hasAction) {
+                let action = getFoodAction(food, this.humans, this.agents);
+                this.actionQueue.addAction(action);
+            }
+
+            food.update();
+            this.pixiApp.stage.addChild(food.pixiGraphic);
+        });
+
+        this.weapons.map( (weapon) => {
+            if(!weapon.toggles.hasAction) {
+                let action = getWeaponAction(weapon, this.humans, this.agents)
+            }
+
+            weapon.update();
+            this.pixiApp.stage.addChild(weapon.pixiGraphic);
+        });
+
         this.agents.map( (agent) => {
-            if (!agent.hasAction) {
-                let action = getAgentAction(agent, this.items, this.humans, this.zombies);
+            //agent.setMoveStats();
+
+            if (!agent.toggles.hasAction) {
+                let action = getAgentAction(agent, this.items, this.foods, this.humans, this.zombies);
                 this.actionQueue.addAction(action);
             }
 
@@ -120,8 +252,10 @@ export class World {
         });
 
         this.humans.map( (human) => {
-            if (!human.hasAction) {
-                let action = getHumanAction(human, this.humans, this.zombies, this.items);
+            //human.setMoveStats();
+
+            if (!human.toggles.hasAction) {
+                let action = getHumanAction(human, this.humans, this.zombies, this.items, this.foods, this.weapons);
                 this.actionQueue.addAction(action);
             }
 
@@ -130,7 +264,15 @@ export class World {
         });
 
         this.zombies.map( (zombie) => {
-            if (!zombie.hasAction) {
+            //zombie.setMoveStats();
+            /**
+            if (zombie.isNew) {
+                zombie.hasAction = false;
+                zombie.isNew = false;
+            }
+            **/
+
+            if (!zombie.toggles.hasAction) {
                 let action = getZombieAction(zombie, this.humans);
                 this.actionQueue.addAction(action);
             }
@@ -141,18 +283,69 @@ export class World {
 
         this.actionQueue.execute();
         this.cleanup();
+        //this.spawnAll();
         //console.log(this.items);
     }
 
     cleanup() {
         this.items = this.items.map( (item) => {
-            if (item.shouldCleanup) {
+            if (item.toggles.shouldCleanup) {
+                item.pixiGraphic.clear();
                 return false;
             } else {
                 return item;
             }
         }).filter(Boolean);
 
+        this.foods = this.foods.map( (food) =>  {
+            if (food.toggles.shouldCleanup) {
+                food.pixiGraphic.clear();
+                return false;
+            } else {
+                return food;
+            }
+        }).filter(Boolean);
+
+        this.weapons = this.weapons.map( (weapon) => {
+            if (weapon.toggles.shouldCleanup) {
+                weapon.pixiGraphic.clear();
+                return false;
+            } else {
+                return weapon;
+            }
+        }).filter(Boolean);
+
+        this.agents = this.agents.map( (agent) => {
+            if (agent.toggles.shouldCleanup) {
+                agent.pixiGraphic.clear();
+                return false;
+            } else {
+                return agent;
+            }
+        }).filter(Boolean);
+
+        this.humans = this.humans.map( (human) => {
+            if (human.toggles.shouldCleanup) {
+                human.pixiGraphic.clear();
+                return false;
+            } else {
+                return human;
+            }
+        }).filter(Boolean);
+
+        this.zombies = this.zombies.map( (zombie) => {
+            if (zombie.toggles.shouldCleanup) {
+                zombie.pixiGraphic.clear();
+                return false;
+            } else {
+                return zombie;
+            }
+        }).filter(Boolean);
+
+        this.spawnAll();
+    }
+
+    spawnAll() {
         if (this.items.length < CONFIG.bodies.item.initNum) {
             this.items.push(generateOneItem(
                 CONFIG.world.width,
@@ -162,29 +355,56 @@ export class World {
             ));
         };
 
-        this.agents = this.agents.map( (agent) => {
-            if (agent.shouldCleanup) {
-                return false;
-            } else {
-                return agent;
-            }
-        }).filter(Boolean);
+        if (this.foods.length < CONFIG.bodies.item.food.initNum) {
+            this.foods.push(generateOneFood(
+                CONFIG.world.width,
+                CONFIG.world.height,
+                CONFIG.bodies.item.food.color,
+                CONFIG.bodies.item.food.radius,
+            ));
+        };
 
-        this.humans = this.humans.map( (human) => {
-            if (human.shouldCleanup) {
-                return false;
-            } else {
-                return human;
-            }
-        }).filter(Boolean);
+        if (this.weapons.length < CONFIG.bodies.item.weapon.initNum) {
+            this.weapons.push(generateOneWeapon(
+                CONFIG.world.width,
+                CONFIG.world.height,
+                CONFIG.bodies.item.weapon.color,
+                CONFIG.bodies.item.weapon.radius,
+            ));
+        };
 
-        this.zombies = this.zombies.map( (zombie) => {
-            if (zombie.shouldCleanup) {
-                return false;
-            } else {
-                return zombie;
-            }
-        }).filter(Boolean);
+        if (this.humans.length < CONFIG.bodies.agent.human.lowAllowed) {
+            this.humans.push(generateOneHuman(
+                CONFIG.world.width,
+                CONFIG.world.height,
+                CONFIG.bodies.agent.human.color,
+                CONFIG.bodies.agent.human.radius,
+            ));
+        };
+
+        if (this.zombies.length < CONFIG.bodies.agent.zombie.lowAllowed) {
+            this.zombies.push(generateOneZombie(
+                CONFIG.world.width,
+                CONFIG.world.height,
+                CONFIG.bodies.agent.zombie.color,
+                CONFIG.bodies.agent.zombie.radius,
+            ));
+        };
+
+        this.humans.map( (human) => {
+            if (human.toggles.respawn) {
+                let zombie = spawnZombie(
+                    human.info.deathSpot.x,
+                    human.info.deathSpot.y,
+                    CONFIG.bodies.agent.zombie.color,
+                    CONFIG.bodies.agent.zombie.radius,
+                );
+                //zombie.hasAction = false;
+                this.zombies.push(zombie);
+                return human.toggles.isDead = true;
+                //return human.toggles.shouldCleanup = true;
+            };
+        });
     }
 
     render() {

@@ -4,7 +4,9 @@
 import { Ghost } from '../classes/ghost.class';
 
 export const generateGhost = () => {
-        let ghosts =  [];
+        let ghosts =  [
+            new Ghost(),
+        ];
 
-        return new Ghost();
+        return ghosts;
     };

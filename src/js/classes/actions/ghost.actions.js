@@ -11,7 +11,7 @@ export class GhostHumanGroupAction extends Action {
      * Constructor
      * @param {Object} data -
      *      {
-     *
+     *          ghost - A ghost!!!!
      *
      *
      *      }
@@ -21,7 +21,7 @@ export class GhostHumanGroupAction extends Action {
     }
 
     beforeExecute() {
-        this.data.Ghost.hasAction = true;
+        this.data.ghost.hasAction = true;
         this._isDone = false;
     }
 
@@ -36,6 +36,6 @@ export class GhostHumanGroupAction extends Action {
     }
 
     afterExecute() {
-        this.data.item.hasAction = false;
+        this.data.ghost.hasAction = false;
     }
 }

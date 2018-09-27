@@ -1,45 +1,39 @@
 /**
- * bodies.class.js
+ * dead.class.js
  */
-let Victor = require('victor');
 
 import * as PIXI from 'pixi.js';
 import * as Random from 'random-js';
 import { CONFIG } from '../config/config';
+import { Agent } from './agent.class';
 
-export class Bodies {
-    constructor(position, color, radius, /**stats**/) {
-        this.position = position;
-        this.color = color;
-        this.radius = radius;
-        this.pixiGraphic = new PIXI.Graphics();
+export class Dead extends Agent {
+    constructor(position, color, radius) {
+        super(position, color, radius);
 
         this.toggles = {
             hasAction: false,
-            isSought: false,
-            isDecayed: false,
-            statDecay: false,
-            spawnTick: false,
+            willReanimate: false,
             shouldCleanup: false,
+            spawnTick: false,
         };
 
         this.info = {
+            type: null,
+            taker: null,
+            deathSpot: null,
             decayRate: null,
             spawnTime: null,
-            taker: null,
+            despawnTime: null,
         };
 
-        /**
-        this.hasAction = false;
-        this.shouldCleanup = false;
-        this.isSought = false;
-        this.taker = null;
-        this.decayRate = null;
-        this.statDecay = false;
+        this.moveStats = null;
+        this.fightStats = null;
 
-        this.spawnTick = false;
-        this.spawnTime = null;
-        **/
+        this.nutritionStats = {
+            bonus: this.bonus || CONFIG.bodies.agent.dead.nutritionStats.bonus,
+            penalty: this.penalty || CONFIG.bodies.agent.dead.nutritionStats.penalty,
+        };
     }
 
     update() {
@@ -49,7 +43,6 @@ export class Bodies {
         this.pixiGraphic.x = this.position.x;
         this.pixiGraphic.y = this.position.y;
 
-        // used to keep track of how long things last (seconds)
         if (!this.toggles.spawnTick) {
             this.toggles.spawnTick = true;
             setTimeout(() => {
@@ -64,9 +57,21 @@ export class Bodies {
 
             }, 1000);
         }
+
+        this.updateStats();
     }
 
-    cleanup() {
-        //this.pixiGraphic.clear();
+    updateStats() {
+        /**
+        if(this.toggles.isDecayed) {
+            if (this.info.type == 'zombie') {
+
+            } else {
+
+            }
+
+            this.toggles.shouldCleanup = true;
+        }
+        */
     }
 }

@@ -40,9 +40,9 @@ export class Zombie extends Agent {
         this.info = {
             type: 'Zombie',
             hungerLvl: null,
-            deathSpot: null,
+            caughtSpot: null,
             decayRate: null,
-            surviveTime: null,
+            spawnTime: null,
             taker: null,
             decayRate: CONFIG.bodies.agent.zombie.decayRate,
             killedList: [],
@@ -88,16 +88,16 @@ export class Zombie extends Agent {
         this.pixiGraphic.y = this.position.y;
 
         // Agent specific update shit goes here vvvvvv
-        if (!this.toggles.surviveTick) {
-            this.toggles.surviveTick = true;
+        if (!this.toggles.spawnTick) {
+            this.toggles.spawnTick = true;
             setTimeout(() => {
-                let currentTick = this.info.surviveTime;
+                let currentTick = this.info.spawnTime;
 
-                if (this.info.surviveTime == currentTick) {
-                    this.info.surviveTime += 1;
-                    this.toggles.surviveTick = false;
+                if (this.info.spawnTime == currentTick) {
+                    this.info.spawnTime += 1;
+                    this.toggles.spawnTick = false;
                 } else {
-                    this.toggles.surviveTick = false;
+                    this.toggles.spawnTick = false;
                 }
 
             }, 1000);
@@ -124,8 +124,8 @@ export class Zombie extends Agent {
         }
 
         if(this.toggles.isCaught) {
-            this.info.deathSpot = this.position.clone();
-            this.toggles.isKilled = true;
+            this.info.caughtSpot = this.position.clone();
+            //this.toggles.isKilled = true;
         }
 
         if(this.toggles.isSlowed) {
@@ -157,8 +157,9 @@ export class Zombie extends Agent {
         }
 
         if(this.toggles.isDecayed) {
-            this.toggles.shouldCleanup = true;
-            console.log(`${this.info.type} - I should be dead - DecayStat: ${this.toggles.isDecayed} - CleanStat: ${this.toggles.shouldCleanup}.`);
+            this.toggles.isCaught = true;
+            //this.toggles.shouldCleanup = true;
+            //console.log(`${this.info.type} - I should be dead - DecayStat: ${this.toggles.isDecayed} - ShoCleanStat: ${this.toggles.shouldCleanup}.`);
         }
     }
 }

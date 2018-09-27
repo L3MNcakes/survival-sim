@@ -8,7 +8,7 @@ import {
     HumanSeekItemAction,
     HumanIdleAction,
     HumanMoveAction,
-    HumanDyingAction,
+    HumanCaughtAction,
     HumanAvoidOtherAction,
     HumanActionChainExample1
 } from '../../classes/actions/human.actions';
@@ -45,8 +45,17 @@ export const getHumanAction = (human, currentHumans, currentZombies, currentItem
             avoidAction = 'avoidZombie',
             chooseAction = null;
 
-            if (human.toggles.isCaught || human.toggles.isDying) { //needs fixed
-                chooseAction = 'dying';
+            //human.toggles.isDying
+
+            /**
+            if (human.toggles.isDead) {
+
+            }
+            */
+
+            if (human.toggles.isCaught) { //needs fixed
+                //human.position = human.info.caughtSpot.clone();
+                chooseAction = 'caught'; //caught action eventually -- fighting / dodging / etc?
             } else if (human.position.distance(getNearestAgentPosition(human, currentZombies)) < CONFIG.bodies.agent.human.avoidRadius) {
                 chooseAction = avoidAction;
             } else if (human.moveStats.baseSpeed > human.moveStats.currentSpeed) {
@@ -120,10 +129,9 @@ export const getHumanAction = (human, currentHumans, currentZombies, currentItem
                     human,
                     time: CONFIG.bodies.agent.human.waitTime,
                 });
-            case 'dying':
-                return new HumanDyingAction({
+            case 'caught':
+                return new HumanCaughtAction({ //fight / dodge / etc (eventually)
                     human,
-                    dyingColor: CONFIG.bodies.agent.human.dyingColor,
                     zombies: currentZombies,
                     time: CONFIG.bodies.agent.human.dyingTime,
                 });

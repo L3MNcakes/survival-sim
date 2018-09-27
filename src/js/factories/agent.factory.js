@@ -6,6 +6,7 @@ import { Agent } from '../classes/agent.class';
 import { Charmander } from '../classes/charmander.class';
 import { Human } from '../classes/human.class';
 import { Zombie } from '../classes/zombie.class';
+import { Dead } from '../classes/dead.class';
 import {
     randomPosition,
     fixedPosition,
@@ -145,4 +146,18 @@ export const spawnZombie = (
 
         zombie.setMoveStats();
         return zombie;
+    };
+
+export const spawnDead = (
+        posX,
+        posY,
+        color,
+        radius,
+    ) => {
+        let dead = new Dead(
+            fixedPosition(posX, posY),
+            color,
+            radius,
+        );
+        return dead;
     };

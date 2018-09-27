@@ -97,54 +97,58 @@ export class HumanSeekItemAction extends Action {
             moveVec = deltaVec.clone().multiply(speedVec),
             newPos = this.data.human.position.clone().add(moveVec);
 
-        if (!targetInfo.toggles.isTaken && !targetInfo.toggles.isSought && target.distance(getNearestAgentPosition(this.data.human, _avoidTarget)) > _avoidRadius) {
-            targetInfo.tests.seekerAgent = this.data.human;
-            trueTarget = targetInfo;
-            trueTarget.tests.seekerAgent = this.data.human;
-            trueTarget.toggles.isSought = true;
-
-            /**
-            if (this.data.human.position.distance(target.clone()) < this.data.human.radius) {
-                this.data.human.position = target.clone();
-                targetInfo.toggles.isTaken = true;
-                this._isDone = true;
-                this.data.affectStat = true;
-                //this.data.agent.hasKilled.push(targetInfo);
-            } else {
-                targetInfo.toggles.isSought = true;
-                this.data.human.position = newPos.clone();
-            }
-            **/
-        } else if (targetInfo.toggles.isSought && !targetInfo.toggles.isTaken) {
-            if (targetInfo.tests.seekerAgent == this.data.human) {
+        if (!this.data.human.toggles.isCaught) {
+            if (!targetInfo.toggles.isTaken && !targetInfo.toggles.isSought && target.distance(getNearestAgentPosition(this.data.human, _avoidTarget)) > _avoidRadius) {
+                targetInfo.tests.seekerAgent = this.data.human;
                 trueTarget = targetInfo;
-                target = trueTarget.position;
+                trueTarget.tests.seekerAgent = this.data.human;
+                trueTarget.toggles.isSought = true;
 
+                /**
                 if (this.data.human.position.distance(target.clone()) < this.data.human.radius) {
                     this.data.human.position = target.clone();
-                    //trueTarget.toggles.isTaken = true;
-                    this.data.affectStat = true;
-                    this.data.affectList.push(trueTarget);
-                    //console.log(`I (${this.data.human.info.type}) just did something - AffectStat - ${this.data.affectStat} -- Affect List ${this.data.affectList}`)
+                    targetInfo.toggles.isTaken = true;
                     this._isDone = true;
+                    this.data.affectStat = true;
+                    //this.data.agent.hasKilled.push(targetInfo);
                 } else {
-                    trueTarget.toggles.isSought = true;
+                    targetInfo.toggles.isSought = true;
                     this.data.human.position = newPos.clone();
                 }
+                **/
+            } else if (targetInfo.toggles.isSought && !targetInfo.toggles.isTaken) {
+                if (targetInfo.tests.seekerAgent == this.data.human) {
+                    trueTarget = targetInfo;
+                    target = trueTarget.position;
 
-            } else if (trueTarget.tests.seekerAgent == this.data.human && !targetInfo.toggles.isTaken) {
-                target = trueTarget.position;
+                    if (this.data.human.position.distance(target.clone()) < this.data.human.radius) {
+                        this.data.human.position = target.clone();
+                        //trueTarget.toggles.isTaken = true;
+                        this.data.affectStat = true;
+                        this.data.affectList.push(trueTarget);
+                        //console.log(`I (${this.data.human.info.type}) just did something - AffectStat - ${this.data.affectStat} -- Affect List ${this.data.affectList}`)
+                        this._isDone = true;
+                    } else {
+                        trueTarget.toggles.isSought = true;
+                        this.data.human.position = newPos.clone();
+                    }
 
-                if (this.data.human.position.distance(target.clone()) < this.data.human.radius) {
-                    this.data.human.position = target.clone();
-                    //trueTarget.toggles.isTaken = true;
-                    this.data.affectStat = true;
-                    this.data.affectList.push(trueTarget);
-                    //console.log(`I (${this.data.human.info.type}) just did something - AffectStat - ${this.data.affectStat} -- Affect List ${this.data.affectList}`)
-                    this._isDone = true;
+                } else if (trueTarget.tests.seekerAgent == this.data.human && !targetInfo.toggles.isTaken) {
+                    target = trueTarget.position;
+
+                    if (this.data.human.position.distance(target.clone()) < this.data.human.radius) {
+                        this.data.human.position = target.clone();
+                        //trueTarget.toggles.isTaken = true;
+                        this.data.affectStat = true;
+                        this.data.affectList.push(trueTarget);
+                        //console.log(`I (${this.data.human.info.type}) just did something - AffectStat - ${this.data.affectStat} -- Affect List ${this.data.affectList}`)
+                        this._isDone = true;
+                    } else {
+                        trueTarget.toggles.isSought = true;
+                        this.data.human.position = newPos.clone();
+                    }
                 } else {
-                    trueTarget.toggles.isSought = true;
-                    this.data.human.position = newPos.clone();
+                    this._isDone = true;
                 }
             } else {
                 this._isDone = true;
@@ -152,6 +156,7 @@ export class HumanSeekItemAction extends Action {
         } else {
             this._isDone = true;
         }
+
 
 
     }
@@ -169,13 +174,12 @@ export class HumanSeekItemAction extends Action {
     }
 }
 
-export class HumanDyingAction extends Action {
+export class HumanCaughtAction extends Action {
     /**
      * Constructor
      * @param {Object} data -
      *      {
      *          human - The human that is idle
-     *          dyingColor - color human turns while dying
      *          zombies - zombie list the human is added to after dying
      *          time - How long to wait (in ms)
      *      }
@@ -186,15 +190,28 @@ export class HumanDyingAction extends Action {
 
     beforeExecute() {
         this.data.human.toggles.hasAction = true;
-        this.data.human.toggles.isDead = false;
+        //this.data.human.toggles.isDead = false;
         this._isDone = false;
         this._hasTimeout = false;
     }
 
     execute() {
+        //// temp
+        if (this.data.human.toggles.isCaught) {
+            if (this.data.human.info.taker == 'zombie') {
+                this.data.human.toggles.respawn = true;
+            } else {
+                this.data.human.toggles.respawn = false;
+            }
 
-        this.data.human.color = this.data.dyingColor;
+            this.data.human.toggles.isDead = true;
+        } else {
+            this._isDone = true;
+        }
 
+
+        //this.data.human.color = this.data.dyingColor;
+        /**
         if (!this._hasTimeout) {
             setTimeout(() => {
                 if (this.data.human.info.taker == 'zombie') {
@@ -214,6 +231,7 @@ export class HumanDyingAction extends Action {
 
             this._hasTimeout = true;
         }
+        */
 
 
 
@@ -225,7 +243,9 @@ export class HumanDyingAction extends Action {
     }
 
     afterExecute() {
-        //this.data.human.toggles.hasAction = false;
+        if (!this.data.human.toggles.isDead) {
+            this.data.human.toggles.hasAction = false;
+        }
     }
 }
 
@@ -287,6 +307,7 @@ export class HumanMoveAction extends Action {
      */
     beforeExecute() {
         this.data.human.toggles.hasAction = true;
+        this._isDone = false;
     }
 
     /**
@@ -298,11 +319,16 @@ export class HumanMoveAction extends Action {
             moveVec = deltaVec.clone().multiply(speedVec),
             newPos = this.data.human.position.clone().add(moveVec);
 
-        if (this.data.human.position.distance(this.data.destination) < this.data.human.radius) {
-            this.data.human.position = this.data.destination.clone();
+        if (!this.data.human.toggles.isCaught) {
+            if (this.data.human.position.distance(this.data.destination) < this.data.human.radius) {
+                this.data.human.position = this.data.destination.clone();
+            } else {
+                this.data.human.position = newPos.clone();
+            }
         } else {
-            this.data.human.position = newPos.clone();
+            this._isDone = true;
         }
+
     }
 
     /**
@@ -311,7 +337,8 @@ export class HumanMoveAction extends Action {
      */
     isDone() {
         return this.data.human.position.x === this.data.destination.x
-            && this.data.human.position.y === this.data.destination.y;
+            && this.data.human.position.y === this.data.destination.y
+            || this._isDone;
     }
 
     /**

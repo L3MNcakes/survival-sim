@@ -24,7 +24,7 @@ export class Agent extends Bodies {
         super(position, color, radius, /**stats**/);
 
         /**
-        this.isAvoiding = false;
+        this.isAvocaughtiding = false;
         this.isCaught = false;
         this.isDecayed = false;
         this.isSlowed = false;
@@ -41,10 +41,11 @@ export class Agent extends Bodies {
             hasAction: false,
             isSought: false,
             isDead: false,
+            deadSpawned: false,
             respawn: false,
-            isDecayed: false,
+            //isDecayed: false,
             statDecay: false,
-            surviveTick: false,
+            spawnTick: false,
             shouldCleanup: false,
             isAvoiding: false,
             isCaught: false,
@@ -61,9 +62,9 @@ export class Agent extends Bodies {
         this.info = {
             type: 'Agent',
             hungerLvl: null,
-            deathSpot: null,
+            caughtSpot: null,
             decayRate: null,
-            surviveTime: null,
+            spawnTime: null,
             taker: null,
             decayRate: CONFIG.bodies.agent.decayRate,
             killedList: [],
@@ -73,7 +74,7 @@ export class Agent extends Bodies {
 
         /**
         this.hungerLvl = null;
-        this.deathSpot = null;
+        this.caughtSpot = null;
 
         this.killedList = [];
         this.eatenList = [];
@@ -139,16 +140,16 @@ export class Agent extends Bodies {
         this.pixiGraphic.y = this.position.y;
 
         // Agent specific update shit goes here vvvvvv
-        if (!this.toggles.surviveTick) {
-            this.toggles.surviveTick = true;
+        if (!this.toggles.spawnTick) {
+            this.toggles.spawnTick = true;
             setTimeout(() => {
-                let currentTick = this.info.surviveTime;
+                let currentTick = this.info.spawnTime;
 
-                if (this.info.surviveTime == currentTick) {
-                    this.info.surviveTime += 1;
-                    this.toggles.surviveTick = false;
+                if (this.info.spawnTime == currentTick) {
+                    this.info.spawnTime += 1;
+                    this.toggles.spawnTick = false;
                 } else {
-                    this.toggles.surviveTick = false;
+                    this.toggles.spawnTick = false;
                 }
 
             }, 1000);
@@ -176,8 +177,8 @@ export class Agent extends Bodies {
         }
 
         if(this.toggles.isCaught) {
-            this.info.deathSpot = this.position.clone();
-            this.toggles.isKilled = true;
+            this.info.caughtSpot = this.position.clone();
+            //this.toggles.isKilled = true;
         }
 
         if(this.toggles.isSlowed) {
@@ -213,9 +214,11 @@ export class Agent extends Bodies {
             return this.toggles.hasWeapon = false;
         }
 
+        /**
         if(this.toggles.isDecayed) {
             this.toggles.shouldCleanup = true;
             console.log(`${this.info.type} - I should be dead - DecayStat: ${this.toggles.isDecayed} - CleanStat: ${this.toggles.shouldCleanup}.`);
         }
+        */
     }
 }

@@ -59,6 +59,14 @@ export const CONFIG = {
                 defense: 6,
                 dodge: 6,
             },
+            dead: {
+                color: 0xc1c1c1,
+                deadTime: 15000,
+                nutritionStats: {
+                    bonus: 2,
+                    penalty: 1,
+                },
+            },
             human: {
                 initNum: 20,
                 lowAllowed: 3,

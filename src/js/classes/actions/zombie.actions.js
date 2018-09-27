@@ -65,7 +65,7 @@ export class ZombieChaseHumansAction extends Action {
                 this.data.zombie.position = newPos.clone()
                 targetInfo.toggles.isCaught = true;
                 //targetInfo.deathSpot = targetInfo.position.clone();
-                targetInfo.info.taker = ['zombie'];
+                targetInfo.info.taker = 'zombie';
                 this.data.zombie.toggles.isEating = true;
                 this._isDone = true;
             } else {
@@ -86,12 +86,91 @@ export class ZombieChaseHumansAction extends Action {
         if (this.data.zombie.toggles.isEating) {
             return new ZombieIdleAction(this.data);
             this.data.zombie.toggles.isEating = false;
+            this.data.zombie.toggles.hasEaten = true;
         }
     }
 
     afterExecute() {
-        this.data.zombie.toggles.hasEaten = true;
+        //this.data.zombie.toggles.hasEaten = true;
+        this.data.zombie.toggles.hasAction = false;
         //this.data.zombie.hasAction = false; // might need removed
+    }
+}
+
+export class ZombieCaughtAction extends Action {
+    /**
+     * Constructor
+     * @param {Object} data -
+     *      {
+     *          zombie - The zombie that is idle
+     *          zombies - zombie list the zombie is added to after dying
+     *          time - How long to wait (in ms)
+     *      }
+     */
+    constructor(data) {
+        super(data);
+    }
+
+    beforeExecute() {
+        this.data.zombie.toggles.hasAction = true;
+        //this.data.zombie.toggles.isDead = false;
+        this._isDone = false;
+        this._hasTimeout = false;
+    }
+
+    execute() {
+        //// temp
+        if (this.data.zombie.toggles.isCaught) {
+            /**
+            if (this.data.zombie.info.taker == 'zombie') {
+                this.data.zombie.toggles.respawn = true;
+            } else {
+                this.data.zombie.toggles.respawn = false;
+            }
+            */
+
+            this.data.zombie.toggles.isDead = true;
+        } else {
+            this._isDone = true;
+        }
+
+
+        //this.data.zombie.color = this.data.dyingColor;
+        /**
+        if (!this._hasTimeout) {
+            setTimeout(() => {
+                if (this.data.zombie.info.taker == 'zombie') {
+                    this.data.zombie.pixiGraphic.clear();
+                    this.data.zombie.toggles.respawn = true;
+                } else if (this.data.zombie.info.taker == 'hunger') {
+                    this.data.zombie.pixiGraphic.clear();
+                    this.data.zombie.toggles.respawn = false;
+                    this.data.zombie.toggles.isDead = true;
+                } else {
+                    console.log(`I don't know what killed me... ${this.data.zombie} - ${this.data.zombie.info.taker}`)
+                    this.data.zombie.toggles.isDead = true;
+                }
+
+                this._isDone = true;
+            }, this.data.time);
+
+            this._hasTimeout = true;
+        }
+        */
+
+
+
+
+    }
+
+    isDone() {
+        return this._isDone;
+    }
+
+    afterExecute() {
+        if (!this.data.zombie.toggles.isDead) {
+            this.data.zombie.toggles.hasAction = false;
+        }
     }
 }
 

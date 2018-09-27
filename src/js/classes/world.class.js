@@ -27,6 +27,7 @@ import {
     generateOneHuman,
     generateOneZombie,
     spawnZombie,
+    spawnDead,
 } from '../factories/agent.factory';
 
 export class World {
@@ -141,15 +142,18 @@ export class World {
             }
         );
 
+        this.deads = [];
+
         this.getGrouped = () => {
             let groupedBodies = {
+                deads: this.deads,
+                humans: this.humans,
+                zombies: this.zombies,
+                agents: this.agents,
                 ghosts: this.ghosts,
                 items: this.items,
                 foods: this.foods,
                 weapons: this.weapons,
-                agents: this.agents,
-                humans: this.humans,
-                zombies: this.zombies
             };
             return console.log(groupedBodies);
         }
@@ -208,6 +212,18 @@ export class World {
             }
 
             ghost.update();
+        });
+
+        this.deads.map( (dead) => {
+            /**
+            if(!dead.toggles.hasAction) {
+                let action = getDeadAction(dead,);
+                this.actionQueue.addAction(action);
+            }
+            */
+
+            dead.update();
+            this.pixiApp.stage.addChild(dead.pixiGraphic);
         });
 
         this.items.map( (item) => {
@@ -342,6 +358,15 @@ export class World {
             }
         }).filter(Boolean);
 
+        this.deads = this.deads.map( (dead) => {
+            if (dead.toggles.shouldCleanup) {
+                dead.pixiGraphic.clear();
+                return false;
+            } else {
+                return dead;
+            }
+        }).filter(Boolean);
+
         this.spawnAll();
     }
 
@@ -391,7 +416,35 @@ export class World {
             ));
         };
 
+
         this.humans.map( (human) => {
+            if (human.toggles.isDead && !human.toggles.deadSpawned) {
+                let _dedSpot = human.info.caughtSpot.clone(),
+                    dead = spawnDead( //just spawns a dead body, not a zombie
+                    _dedSpot.x,
+                    _dedSpot.y,
+                    CONFIG.bodies.agent.dead.color,
+                    human.radius,
+                );
+
+                human.pixiGraphic.clear();
+                dead.info.taker = human.info.taker;
+                dead.info.type = human.info.type;
+                dead.info.deathSpot = human.info.caughtSpot.clone();
+
+                if (dead.info.taker === 'zombie') {
+                    dead.toggles.willReanimate = true;
+
+                } else {
+                    dead.toggles.willReanimate = false;
+                }
+
+                this.deads.push(dead);
+                human.toggles.deadSpawned = true;
+                human.toggles.shouldCleanup = true;
+            };
+
+            /**
             if (human.toggles.respawn) {
                 let zombie = spawnZombie(
                     human.info.deathSpot.x,
@@ -404,6 +457,94 @@ export class World {
                 return human.toggles.isDead = true;
                 //return human.toggles.shouldCleanup = true;
             };
+            */
+        });
+
+        this.zombies.map( (zombie) => {
+            if (zombie.toggles.isDead && !zombie.toggles.deadSpawned) {
+                let dead = spawnDead(
+                    zombie.info.caughtSpot.x,
+                    human.info.caughtSpot.y,
+                    CONFIG.bodies.agent.dead.color,
+                    zombie.radius,
+                );
+
+                zombie.pixiGraphic.clear();
+                dead.info.taker = zombie.info.taker;
+                dead.info.type = zombie.info.type;
+                dead.info.deathSpot = zombie.info.caughtSpot.clone();
+                this.deads.push(dead);
+                zombie.toggles.deadSpawned = true;
+                zombie.toggles.shouldCleanup = true;
+            }
+        });
+
+        this.deads.map( (dead) => {
+            if (dead.info.spawnTime == 15 && dead.toggles.willReanimate) {
+                let zombie = spawnZombie(
+                    dead.info.deathSpot.x,
+                    dead.info.deathSpot.y,
+                    CONFIG.bodies.agent.zombie.color,
+                    dead.radius,
+                );
+
+                this.zombies.push(zombie);
+                dead.pixiGraphic.clear();
+                dead.toggles.shouldCleanup = true;
+            } else if (dead.info.spawnTime == 15 && !dead.toggles.willReanimate) {
+                dead.toggles.shouldCleanup = true;
+            }
+
+            /**
+            let _oneTime = false,
+                _oneSpawn = false;
+
+            if (!_oneTime) {
+                _oneTime = true;
+                setTimeout(() => {
+                    if(dead.toggles.willReanimate = true && !_oneSpawn) {
+                        _oneSpawn = true;
+                        let zombie = spawnZombie(
+                            dead.info.deathSpot.x,
+                            dead.info.deathSpot.y,
+                            CONFIG.bodies.agent.zombie.color,
+                            dead.radius,
+                        );
+
+                        this.zombies.push(zombie);
+                        //dead.pixiGraphic.clear();
+                        dead.toggles.shouldCleanup = true;
+                    } else {
+                        dead.toggles.shouldCleanup = true;
+                    }
+                }, CONFIG.bodies.agent.dead.deadTime);
+            }
+            */
+
+
+            /**
+            if (dead.toggles.willReanimate = true) {
+                setTimeout(() => {
+                    let zombie = spawnZombie(
+                        dead.info.deathSpot.x,
+                        dead.info.deathSpot.y,
+                        CONFIG.bodies.agent.zombie.color,
+                        dead.radius,
+                    );
+
+                    dead.pixiGraphic.clear();
+
+                    this.zombies.push(zombie);
+
+                    return dead.toggles.shouldCleanup = true;
+
+                }, CONFIG.bodies.agent.dead.deadTime);
+            } else {
+                setTimeout(() => {
+                    return dead.toggles.shouldCleanup = true;
+                }, CONFIG.bodies.agent.dead.deadTime);
+            }
+            */
         });
     }
 
